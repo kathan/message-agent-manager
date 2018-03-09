@@ -1,0 +1,40 @@
+{
+  "name": "message-agent-manager",
+  "version": "0.0.1",
+  "description": "A node.js library for to manager multiple message agents.",
+  "license": "MIT",
+  "homepage": "https://github.com/kathan/message-agent-manager/",
+  "keywords": [
+    "javascript",
+    "node",
+    "js",
+    "http",
+    "post",
+    "upload",
+    "file",
+    "automation",
+    "http"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kathan/message-agent-manager.git"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "maintainers": [
+    {
+      "name": "Darrel Kathan",
+      "email": "darrelkathan@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "async": "*",
+    "formidible": "*",
+    "express": "*"
+  },
+  "bugs": {
+    "url": "https://github.com/kathan/message-agent-manager/issues"
+  },
+  "main": "./index.js"
+}
