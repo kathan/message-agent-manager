@@ -9,9 +9,11 @@ const path = require('path');
 const Url = require('url');
 const util = require('util');
 
+const MessageAgentWorkflow = require('./workflow.js');
+
+//==== Dependencies ====
 const Async = require('async');
 const formidable = require('formidable');
-const MessageAgentWorkflow = require('./workflow.js');
 const express = require('express');
 
 var MessageAgentManager = function(options, callback){
