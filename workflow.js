@@ -113,23 +113,13 @@ var MessageAgentWorkflow = function(app, options, callback){
     );
   }
   
-  app.get(`${url_obj.pathname}`, (req, res, next)=>{
+  log(`Get agent ${url_obj.pathname}.`)
+  app.get(url_obj.pathname, (req, res, next)=>{
     res.json(self);
     next();
   });
   
-  /*app.put(`${url_obj.pathname}/start`, (req, res, next)=>{
-    self.start();
-    res.json({message:`Started ${name}`});
-    next();
-  });
-    
-  app.put(`${url_obj.pathname}/stop`, (req, res, next)=>{
-    self.stop();
-    res.json({message:`Stopped ${name}`});
-    next();
-  });*/
-  
+  log(`Create new agent at POST ${url_obj.pathname}/agents with "agent" parameter.`)
   app.post(`${url_obj.pathname}/agents`, (req, res, next)=>{
     if(req.body.agent){
       self.createAgent({

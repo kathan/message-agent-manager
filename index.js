@@ -168,14 +168,17 @@ var MessageAgentManager = function(options, callback){
       next();
     });
     
+    log(`GET manager at '/'`);
     app.get('/', (req, res, next)=>{
       res.json({workflows:workflows});  
     });
     
+    log(`GET workflows at '/workflows'`);
     app.get('/workflows', (req, res, next)=>{
       res.json(workflows);  
     });
 
+    log(`Create new workflows at PUT '/workflows' with "workflow" parameter`);
     app.post(`/workflows`, (req, res, next) => {
       //log('POST workflow id', id);
       if(req.body.workflow){
@@ -190,11 +193,6 @@ var MessageAgentManager = function(options, callback){
         next();
       }
     });
-
-    /*app.get(`/${name}/:id`, function (req, res, next, id) {
-      self.getWorkflow(id)
-      next();
-    });*/
     
     app.listen(port, () => {
       log(`listening on ${port}`);
