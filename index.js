@@ -38,7 +38,8 @@ var MessageAgentManager = function(options, callback){
   };
   var log_dir = options.log_dir || 'logs';
   var wf_dir = options.wf_dir || 'workflows';
-  var ip = os.networkInterfaces().en0[1].address;
+  //log(os.networkInterfaces());
+  var ip = getIp();
   var hostname;
   var config_file_name = options.config_file_name || 'fam-cfg.json';
   var port = options.port || 8080;
@@ -46,6 +47,19 @@ var MessageAgentManager = function(options, callback){
   var app;
   var workflows = [];
   EventEmitter.call(this);
+  function getIp(){
+  	var intf = os.networkInterfaces();
+  	for(var i in intf){
+		var adds = intf[i];
+		for(var a in adds){
+			var add = adds[a];
+			
+			if(!add.internal && add.family === 'IPv4'){
+				return add.address;
+			}
+		}
+	}
+  }
   function getHostname(cb){
     dns.reverse(ip, (err, hostnames)=>{
       //if(err){return cb(err);}
@@ -104,7 +118,7 @@ var MessageAgentManager = function(options, callback){
       return workflow.name === name;
     });
   };
-  var cb_count=0;
+  //var cb_count=0;
   this.createWorkflow = function(opts, cb){
     var w = self.getWorkflow(opts.name);
     //log('existing workflow', w)
@@ -119,7 +133,7 @@ var MessageAgentManager = function(options, callback){
         log: opts.log || log,
         error: opts.error || error
       }, (err)=>{
-        log('callback', ++cb_count);
+        //log('callback', ++cb_count);
         if(err){return cb(err);}
         cb();
       });
