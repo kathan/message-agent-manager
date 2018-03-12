@@ -1,6 +1,6 @@
 {
   "name": "message-agent-manager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A node.js app for managing message agents.",
   "license": "MIT",
   "homepage": "https://github.com/kathan/message-agent-manager/",
