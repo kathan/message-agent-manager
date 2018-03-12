@@ -31,7 +31,8 @@
   "dependencies": {
     "async": "*",
     "formidable": "*",
-    "express": "*"
+    "express": "*",
+    "message-agent": "*"
   },
   "bugs": {
     "url": "https://github.com/kathan/message-agent-manager/issues"
