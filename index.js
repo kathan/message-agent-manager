@@ -67,16 +67,16 @@ var MessageAgentManager = function(options, callback){
           return cb(err);
         }
       }
-      if(data){
+      //if(data){
         var json = JSON.parse(data);
         if(json.workflows){
           createWorkflows(json.workflows, ()=>{
             cb();
           });
         }
-        return;
-      }
-      cb();
+        //return;
+      //}
+      //cb();
     });
   }
   
@@ -104,7 +104,7 @@ var MessageAgentManager = function(options, callback){
       return workflow.name === name;
     });
   };
-  
+  var cb_count=0;
   this.createWorkflow = function(opts, cb){
     var w = self.getWorkflow(opts.name);
     //log('existing workflow', w)
@@ -119,7 +119,9 @@ var MessageAgentManager = function(options, callback){
         log: opts.log || log,
         error: opts.error || error
       }, (err)=>{
-        cb(err);
+        log('callback', ++cb_count);
+        if(err){return cb(err);}
+        cb();
       });
       workflows.push(wf);
     }else{

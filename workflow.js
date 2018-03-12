@@ -14,6 +14,7 @@ var MessageAgentWorkflow = function(app, options, callback){
     return new MessageAgentWorkflow(app, options, callback);
   }
   var self = this;
+  var cb_count=0;
   //var running = options.running || false;
   var agents = [];
   var agent_opts = options.agents || [];
@@ -46,35 +47,15 @@ var MessageAgentWorkflow = function(app, options, callback){
   var url = options.url;
   var url_obj = Url.parse(url);
   //log('url_obj', url_obj);
-  //options.running ? running = options.running : null;
   EventEmitter.call(this);
   this.toJSON = function (){
     return {
       name:name,
       url: url,
       directory:directory,
-      //running:running,
       agents:agents
     };
   };
-  
-  /*this.stop = function(){
-    if(running){
-      running = false;
-      agents.forEach((agent)=>{
-        agent.stop();
-      });
-    }
-  };
-  
-  this.start = function(){
-    if(!running){
-      running = true;
-      agents.forEach((agent)=>{
-        agent.start();
-      });
-    }
-  };*/
   
   this.getAgent = function(name){
     return agents.find((agent)=>{
@@ -88,7 +69,7 @@ var MessageAgentWorkflow = function(app, options, callback){
     if(!a){
       log(`Creating agent ${name}/${opts.name}`);
       var fa = MessageAgent(app, {
-                          directory: path.resolve(directory, opts.name),
+                          directory: directory,
                           name: opts.name,
                           //running: opts.running,
                           url: Url.resolve(url, `${name}/${opts.name}`),
@@ -96,6 +77,7 @@ var MessageAgentWorkflow = function(app, options, callback){
                           //log: log,
                           //error: error
                           }, (err)=>{
+        log('callback', ++cb_count);
         if(err){return cb(err);}
         
         //log(`Running agent ${opts.agent_name}`);
@@ -166,7 +148,15 @@ var MessageAgentWorkflow = function(app, options, callback){
   });
 
   createAgents((err)=>{
-    if(err){error(err); return callback(err);}
+    if(err){
+      error(err);
+      if(typeof callback === 'function'){
+        callback(err);
+      }else{
+        self.emit('error', err);
+      }
+      return
+    }
     if(typeof callback === 'function'){
       setImmediate(callback);
     }else{
