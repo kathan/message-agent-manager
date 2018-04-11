@@ -1,5 +1,5 @@
 /*
-message-agent-workflow
+message-agent-manager workflow
 */
 const EventEmitter = require('events').EventEmitter;
 const path = require('path');
@@ -14,13 +14,15 @@ var MessageAgentWorkflow = function(app, options, callback){
     return new MessageAgentWorkflow(app, options, callback);
   }
   var self = this;
-  var cb_count=0;
+  //var cb_count=0;
   //var running = options.running || false;
   var agents = [];
   var agent_opts = options.agents || [];
+  var name = options.name;//required
   var log = options.log || function(){
     var d = new Date();
     const args = Array.from(arguments);
+    args.unshift(`"${name}"`);
     args.unshift(self.constructor.name);
     args.unshift(`${d}`);
     
@@ -34,7 +36,7 @@ var MessageAgentWorkflow = function(app, options, callback){
     log.apply(null, args);
   };
   //log('agent_opts', agent_opts);
-  var name = options.name;//required
+  
   //==== Getters ====
   Object.assign(this,
     {
@@ -51,7 +53,7 @@ var MessageAgentWorkflow = function(app, options, callback){
   this.toJSON = function (){
     return {
       name:name,
-      url: url,
+      url: Url.format(url),
       directory:directory,
       agents:agents
     };
@@ -67,17 +69,22 @@ var MessageAgentWorkflow = function(app, options, callback){
     var a = self.getAgent(opts.name);
     //log('existing agent', a);
     if(!a){
-      log(`Creating agent ${name}/${opts.name}`);
+      log(`Creating agent ${opts.name}`);
+      
+      var new_url = `${url}/${opts.name}`;
+      //log('new_url', new_url);
       var fa = MessageAgent(app, {
                           directory: directory,
                           name: opts.name,
-                          //running: opts.running,
-                          url: Url.resolve(url, `${name}/${opts.name}`),
-                          dest: opts.dest || null
+                          running: opts.running || false,
+                          //url: Url.resolve(url, `${name}/${opts.name}`),
+                          url: new_url,
+                          destination: opts.destination || null,
+                          script: opts.script || null
                           //log: log,
                           //error: error
                           }, (err)=>{
-        log('callback', ++cb_count);
+        //log('callback', ++cb_count);
         if(err){return cb(err);}
         
         //log(`Running agent ${opts.agent_name}`);
@@ -113,7 +120,7 @@ var MessageAgentWorkflow = function(app, options, callback){
     );
   }
   
-  log(`Get agent ${url_obj.pathname}.`)
+  log(`Get workflow ${url_obj.pathname}.`)
   app.get(url_obj.pathname, (req, res, next)=>{
     res.json(self);
     next();
@@ -154,6 +161,6 @@ var MessageAgentWorkflow = function(app, options, callback){
     }
   });
 };
-
+MessageAgentWorkflow.prototype.MODES = MessageAgent.MODES;
 util.inherits(MessageAgentWorkflow, EventEmitter);
 module.exports = MessageAgentWorkflow;

@@ -1,6 +1,18 @@
-/*
-message-agent-manager
-*/
+/*******************************************
+* message-agent-manager
+* Copyright (c) 2018, Darrel Kathan 
+* Licensed under the MIT license.
+*
+* A current version and documentation is available at
+*    https://github.com/kathan/message-agent-manager
+*
+* @summary     message-agent-manager
+* @description message-agent-manager A Javascript module that for transferring messages over HTTP.
+* @file        message-agent-manager
+* @version     0.0.1
+* @author      Darrel Kathan
+* @license     MIT
+*******************************************/
 const EventEmitter = require('events').EventEmitter;
 const fs = require('fs');
 const os = require('os');
@@ -14,6 +26,7 @@ const MessageAgentWorkflow = require('./workflow.js');
 //==== Dependencies ====
 const Async = require('async');
 const formidable = require('formidable');
+const bodyParser = require('body-parser');
 const express = require('express');
 
 var MessageAgentManager = function(options, callback){
@@ -24,6 +37,7 @@ var MessageAgentManager = function(options, callback){
   var log = options.log || function(){
     var d = new Date();
     const args = Array.from(arguments);
+    
     args.unshift(self.constructor.name);
     args.unshift(`${d}`);
     
@@ -43,7 +57,7 @@ var MessageAgentManager = function(options, callback){
   var hostname;
   var config_file_name = options.config_file_name || 'fam-cfg.json';
   var port = options.port || 8080;
-  var wf_url;// = Url.resolve(`http://${hostname}:${port}`, 'workflows');
+  var workflows_url;// = Url.resolve(`http://${hostname}:${port}`, 'workflows');
   var app;
   var workflows = [];
   EventEmitter.call(this);
@@ -65,7 +79,7 @@ var MessageAgentManager = function(options, callback){
       //if(err){return cb(err);}
       hostname = hostnames[0] || ip;
       log('hostname', hostname);
-      wf_url = Url.resolve(`http://${hostname}:${port}`, 'workflows');
+      workflows_url = Url.resolve(`http://${hostname}:${port}`, 'workflows');
       cb();
     });
   }
@@ -124,10 +138,13 @@ var MessageAgentManager = function(options, callback){
     //log('existing workflow', w)
     if(!w){
       log(`Creating workflow ${opts.name}`);
+      var new_url = Url.resolve(workflows_url, opts.name);
+      //log('new_url', new_url);
       var wf = MessageAgentWorkflow(app, {
         name: opts.name,
-        running: opts.running || false,
-        url: Url.resolve(wf_url, opts.name),
+        //running: opts.running || false,
+        url: new_url,
+        //url: wf_url,
         directory: path.resolve(wf_dir, opts.name),
         agents: opts.agents || [],
         log: opts.log || log,
@@ -147,20 +164,18 @@ var MessageAgentManager = function(options, callback){
     app = express();
     
     app.set("json spaces", 2);
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use(bodyParser.json());
     app.use((req, res, next)=>{
-      if (req.method.toLowerCase() == 'post') {
+      //log('req.method', req.method, 'is multipart', req.is('multipart'));
+      if (/*req.method.toLowerCase() === 'post' && */req.is('multipart') === 'multipart') {
         var form = new formidable.IncomingForm();
-        //console.log('Server received post. Parsing files...');
-        form.parse(req, function(err, fields, files) {
-          if(err){return;}
+        form.maxFileSize = 200 * 1024 * 1024;
+        //log('Server received post. Parsing files...');
+        form.parse(req, (err, fields, files) => {
+          if(err){return cb(err);}
           req.body = fields;
-          //req.files = files;
-
-          for(var i in files){
-            files[i].data = fs.readFileSync(files[i].path);
-          }
           req.files = files;
-          //console.log('Files parsed.');
           next();
         });
         return;
@@ -170,7 +185,7 @@ var MessageAgentManager = function(options, callback){
     
     log(`GET manager at '/'`);
     app.get('/', (req, res, next)=>{
-      res.json({workflows:workflows});  
+      res.json({workflows:workflows, modes: self.MODES});  
     });
     
     log(`GET workflows at '/workflows'`);
@@ -178,9 +193,9 @@ var MessageAgentManager = function(options, callback){
       res.json(workflows);  
     });
 
-    log(`Create new workflows at PUT '/workflows' with "workflow" parameter`);
+    log(`Create new workflows at POST '/workflows' with "workflow" parameter`);
     app.post(`/workflows`, (req, res, next) => {
-      //log('POST workflow id', id);
+      log('POST workflow name', req.body.workflow);
       if(req.body.workflow){
         //var w = self.getWorkflow(req.body.workflow);
         //log('existing workflow', w);
@@ -220,4 +235,5 @@ var MessageAgentManager = function(options, callback){
 
 };
 util.inherits(MessageAgentManager, EventEmitter);
+MessageAgentManager.prototype.MODES = MessageAgentWorkflow.MODES;
 module.exports = MessageAgentManager;
